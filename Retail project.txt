@@ -1,0 +1,103 @@
+CREATE DATABASE Product_project;
+--creating product_table--
+CREATE TABLE product(
+product_id INT,
+product_name VARCHAR(50),
+product_category VARCHAR (50),
+product_cost NUMERIC,
+product_price NUMERIC
+);
+ALTER TABLE product ALTER COLUMN product_cost TYPE money USING product_cost::money;
+
+
+ALTER TABLE product
+ALTER COLUMN product_cost TYPE money;
+
+
+
+--Creating inventory table--
+CREATE TABLE inventory(
+store_id INT,
+product_id INT,
+stock_on_hand NUMERIC
+);
+
+--Creating sales table--
+CREATE TABLE sales(
+sales NUMERIC,
+date DATE,
+store_id INT,
+product_id INT,
+Unit NUMERIC
+);
+
+
+
+--creating stores table--
+CREATE TABLE store(
+store_id INT,
+store_name VARCHAR (50),
+store_city VARCHAR(50),
+store_location VARCHAR (50),
+store_open_date DATE
+);
+
+SELECT * FROM inventory;
+SELECT * FROM product;
+SELECT * FROM sales;
+SELECT * FROM store;
+
+
+-- Calculating Total Revenue for Each Product--
+SELECT product_name,
+ SUM(p.product_price * s.unit) AS Total_Revenue
+ FROM sales s
+ JOIN product p
+ ON
+ s.product_id= p.product_id
+ GROUP BY product_name
+ ORDER BY Total_Revenue DESC;
+-- Average Costs of Product Category--
+  SELECT 
+    product_category,
+  ROUND(AVG(product_cost::numeric),2) AS average_cost
+FROM product
+GROUP BY product_category;
+--Total Stock on hand per store--
+SELECT st.store_name,
+ SUM(stock_on_hand) AS Total_stock
+ FROM inventory i
+ JOIN store st
+ ON i.store_id=st.store_id
+ GROUP BY st.store_name,i.stock_on_hand
+ ORDER BY stock_on_hand DESC;
+ --Top Selling Product--
+ SELECT p. product_id,p.product_name,
+  SUM(s.unit) AS Total_unit_sold
+  FROM product p
+  JOIN sales s
+  ON s.product_id=p.product_id
+  GROUP BY p.product_name,p.product_id
+  ORDER BY product_name
+  LIMIT 5;
+
+-- Getting the biggest profit by product_category--
+SELECT product_name, SUM( DISTINCT product_price - product_cost) AS product_profit
+ FROM product
+ GROUP BY product_name
+ ORDER BY product_profit DESC
+ LIMIT 5;
+ 
+--Stores with low stock--
+ SELECT 
+    i.store_id,
+    s.store_name,
+    SUM(i.stock_on_hand) AS total_stock
+FROM inventory i
+JOIN store s ON i.store_id = s.store_id
+GROUP BY i.store_id, s.store_name
+ORDER BY total_stock ASC
+LIMIT 5; 
+
+
+
